@@ -100,3 +100,59 @@ class Device(ABC):
     # Ghi đè phương thức in thông tin thiết bị dưới dạng chuỗi
     def __str__(self):
         return f"[{self.__class__.__name__}] ID: {self._deviceId} | Tên: {self.name} | Trạng thái: {self.status.value}"
+
+# =============================================================================================
+#  CLASS: COMPUTER (Kế thừa Device, Thực thi INetworkable)
+#  – Quản lý máy tính, bổ sung RAM, CPU và GPU
+# =============================================================================================
+class Computer(Device, INetworkable):
+    def __init__(self, deviceId, name, yearOfUse, purchasePrice, ram, cpu, hasGpu, status=DeviceStatus.Active):
+        super().__init__(deviceId, name, yearOfUse, purchasePrice, status)
+        self.ram = ram
+        self.cpu = cpu
+        self.hasGpu = bool(hasGpu)
+        
+        # Biến phục vụ cho interface kết nối mạng
+        self._ipAddress = ""
+        self._isConnected = False
+
+    # =============================================================================================
+    #  TÍNH CHI PHÍ BẢO TRÌ
+    #  – Cơ bản: 5% giá mua
+    #  – Phụ thu 1: Thêm 2% nếu có GPU rời
+    #  – Phụ thu 2: Thêm 1% nếu thiết bị đã dùng trên 5 năm
+    # =============================================================================================
+    def calculateAnnualMaintenanceCost(self):
+        totalCost = self.purchasePrice * 0.5
+        if self.hasGpu:
+            totalCost += self.purchasePrice * 0.2
+        if self.getYearsUsed() > 5:
+            totalCost += self.purchasePrice * 0.1
+        return totalCost
+
+    # =============================================================================================
+    #  TRIỂN KHAI CÁC HÀM CỦA INETWORKABLE
+    #  – Xử lý logic kết nối và ngắt kết nối IP
+    # =============================================================================================
+    @property
+    def ipAddress(self): return self._ipAddress
+    
+    @property
+    def isConnected(self): return self._isConnected
+
+    def connect(self, ipAddress):
+        # Tránh việc thiết bị đang online lại gọi kết nối đè lên
+        if self._isConnected:
+            print(f"  [!] {self._deviceId} Đã kết nối, không thể kết nối lại.")
+            return
+        if not ipAddress.strip():
+            raise ValueError("Địa chỉ IP không được rỗng.")
+            
+        self._ipAddress = ipAddress
+        self._isConnected = True
+        print(f"  [OK] {self._deviceId} Đã kết nối mạng tới IP: {self._ipAddress}")
+
+    def disconnect(self):
+        self._ipAddress = ""
+        self._isConnected = False
+        print(f"  [OK] {self._deviceId} Đã ngắt kết nối mạng.")
