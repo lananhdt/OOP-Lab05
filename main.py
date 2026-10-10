@@ -297,7 +297,7 @@ class LabRoom:
     def getDevicesRequiringMaintenance(self):
         maintenanceList = []
         for dev in self.deviceList:
-            if dev.status == DeviceStatus.UnderMaintenance and dev.getYearsUsed() > 5:
+            if dev.status == DeviceStatus.UnderMaintenance or dev.getYearsUsed() > 5:
                 maintenanceList.append(dev)
         return maintenanceList
 
