@@ -69,7 +69,7 @@ class Device(ABC):
         # Kiểm tra tính hợp lệ của dữ liệu thiết bị
         if not self._deviceId:
             raise ValueError("Mã thiết bị không được rỗng.")
-        if self.purchasePrice < 0:
+        if self.purchasePrice <= 0:
             raise ValueError("Giá mua phải lớn hơn 0.")
         
         currentYear = datetime.date.today().year
