@@ -310,3 +310,65 @@ class LabRoom:
             cost = dev.calculateAnnualMaintenanceCost()
             print(f"  {dev} | Phí bảo trì dự kiến: {cost:,.0f} VNĐ")
         print("-" * 50)
+
+# =============================================================================================
+#  KIỂM THỬ
+# =============================================================================================
+def runTests():
+    print("============= KHỞI TẠO DỮ LIỆU =============")
+    # Hai máy tính (1 máy có GPU rời)
+    comp1 = Computer("C01", "PC Giáo viên", 2020, 15000000, "16GB", "Core i7", hasGpu=False) 
+    comp2 = Computer("C02", "PC Đồ họa", 2023, 25000000, "32GB", "Core i9", hasGpu=True) 
+    
+    # Hai máy in (1 máy đã in trên 100,000 trang)
+    print1 = Printer("P01", "Máy in thường", 2022, 5000000, "Laser", 50000, isColor=False)
+    print2 = NetworkPrinter("P02", "Máy in mạng", 2021, 8000000, "Phun", 120000, isColor=True, status=DeviceStatus.UnderMaintenance) 
+
+    # Một máy chiếu (bóng đèn đã sử dụng trên 3000 giờ)
+    proj1 = Projector("PRJ01", "Máy chiếu Sony", 2018, 12000000, 3500, 3200) 
+
+    # Hai phòng thực hành
+    room1 = LabRoom("R01", "Lab Thực hành Code", 30)
+    room2 = LabRoom("R02", "Lab Đồ họa Đa phương tiện", 30)
+
+    print("\n1. THÊM THIẾT BỊ VÀO PHÒNG:")
+    room1.addDevice(comp1)
+    room1.addDevice(print1)
+    room2.addDevice(comp2)
+    room2.addDevice(print2)
+    room2.addDevice(proj1)
+
+    print("\n2. THỬ THÊM THIẾT BỊ TRÙNG MÃ:")
+    room1.addDevice(comp1)
+
+    print("\n3. IN DANH SÁCH THIẾT BỊ TRONG TỪNG PHÒNG:")
+    room1.printDevices()
+    room2.printDevices()
+
+    print("\n4. TÍNH TỔNG CHI PHÍ BẢO TRÌ DỰ KIẾN CỦA MỖI PHÒNG:")
+    print(f"  ==> Tổng chi phí bảo trì Lab 1 ({room1.name}): {room1.calculateAnnualMaintenanceCost():,.0f} VNĐ")
+    print(f"  ==> Tổng chi phí bảo trì Lab 2 ({room2.name}): {room2.calculateAnnualMaintenanceCost():,.0f} VNĐ")
+
+    print("\n5. LIỆT KÊ THIẾT BỊ CẦN BẢO TRÌ:")
+    maintenanceList = room1.getDevicesRequiringMaintenance() + room2.getDevicesRequiringMaintenance()
+    for dev in maintenanceList:
+        print(f"  - {dev.deviceId} ({dev.name}): Cần được bảo trì!")
+
+    print("\n6. KẾT NỐI MẠNG CHO CÁC THIẾT BỊ CÓ INETWORKABLE:")
+    comp2.connect("192.168.1.100")
+    print2.connect("192.168.1.101")
+    comp2.connect("192.168.1.99") # kết nối khi đang online để test lỗi
+
+    print("\n7. DUYỆT THIẾT BỊ MẠNG BẰNG ĐA HÌNH INTERFACE:")
+    allDevices = [comp1, comp2, print1, print2, proj1]
+    for dev in allDevices:
+        if isinstance(dev, INetworkable):
+            ipStatus = dev.ipAddress if dev.isConnected else "Chưa kết nối"
+            print(f"  - Thiết bị {dev.deviceId} HỖ TRỢ MẠNG. IP hiện tại: {ipStatus}")
+        else:
+            print(f"  - Thiết bị {dev.deviceId} KHÔNG hỗ trợ mạng.")
+            
+    print("\n====================================================")
+
+if __name__ == "__main__":
+    runTests()
