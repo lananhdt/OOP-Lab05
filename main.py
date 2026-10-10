@@ -209,3 +209,24 @@ class NetworkPrinter(Printer, INetworkable):
     def disconnect(self):
         self._ipAddress = ""
         self._isConnected = False
+
+# =============================================================================================
+#  CLASS: PROJECTOR (Kế thừa Device)
+#  – Máy chiếu, tính bảo trì dựa trên độ sáng và số giờ chiếu bóng đèn
+# =============================================================================================
+class Projector(Device):
+    def __init__(self, deviceId, name, yearOfUse, purchasePrice, brightness, lampHours, status=DeviceStatus.Active):
+        super().__init__(deviceId, name, yearOfUse, purchasePrice, status)
+        self.brightness = brightness
+        self.lampHours = lampHours
+
+    # =============================================================================================
+    #  TÍNH CHI PHÍ BẢO TRÌ
+    #  – Cơ bản: 3% giá mua
+    #  – Phụ thu: +1,500,000 VND nếu bóng đèn đã sử dụng trên 3000 giờ
+    # =============================================================================================
+    def calculateAnnualMaintenanceCost(self):
+        totalCost = self.purchasePrice * 0.03
+        if self.lampHours > 3000:
+            totalCost += 1500000
+        return totalCost
