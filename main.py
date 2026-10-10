@@ -123,11 +123,11 @@ class Computer(Device, INetworkable):
     #  – Phụ thu 2: Thêm 1% nếu thiết bị đã dùng trên 5 năm
     # =============================================================================================
     def calculateAnnualMaintenanceCost(self):
-        totalCost = self.purchasePrice * 0.5
+        totalCost = self.purchasePrice * 0.05
         if self.hasGpu:
-            totalCost += self.purchasePrice * 0.2
+            totalCost += self.purchasePrice * 0.02
         if self.getYearsUsed() > 5:
-            totalCost += self.purchasePrice * 0.1
+            totalCost += self.purchasePrice * 0.01
         return totalCost
 
     # =============================================================================================
@@ -175,7 +175,7 @@ class Printer(Device):
     #  – Phụ thu 2: +300,000 VND nếu là máy in màu
     # =============================================================================================
     def calculateAnnualMaintenanceCost(self):
-        totalCost = self.purchasePrice * 0.4
+        totalCost = self.purchasePrice * 0.04
         if self.printedPages > 100000:
             totalCost += 500000
         if self.isColor:
