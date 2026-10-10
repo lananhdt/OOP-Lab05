@@ -156,3 +156,28 @@ class Computer(Device, INetworkable):
         self._ipAddress = ""
         self._isConnected = False
         print(f"  [OK] {self._deviceId} Đã ngắt kết nối mạng.")
+
+# =============================================================================================
+#  CLASS: PRINTER (Kế thừa Device)
+#  – Quản lý máy in chung (Chưa có tính năng mạng)
+# =============================================================================================
+class Printer(Device):
+    def __init__(self, deviceId, name, yearOfUse, purchasePrice, printerType, printedPages, isColor, status=DeviceStatus.Active):
+        super().__init__(deviceId, name, yearOfUse, purchasePrice, status)
+        self.printerType = printerType
+        self.printedPages = int(printedPages)
+        self.isColor = bool(isColor)
+
+    # =============================================================================================
+    #  TÍNH CHI PHÍ BẢO TRÌ
+    #  – Cơ bản: 4% giá mua
+    #  – Phụ thu 1: +500,000 VND nếu số trang in vượt 100,000
+    #  – Phụ thu 2: +300,000 VND nếu là máy in màu
+    # =============================================================================================
+    def calculateAnnualMaintenanceCost(self):
+        totalCost = self.purchasePrice * 0.4
+        if self.printedPages > 100000:
+            totalCost += 500000
+        if self.isColor:
+            totalCost += 300000
+        return totalCost
