@@ -181,3 +181,31 @@ class Printer(Device):
         if self.isColor:
             totalCost += 300000
         return totalCost
+
+# =============================================================================================
+#  CLASS: NETWORK PRINTER (Kế thừa Printer, Thực thi INetworkable)
+#  – Yêu cầu "chỉ một số máy in mới có mạng"
+# =============================================================================================
+class NetworkPrinter(Printer, INetworkable):
+    def __init__(self, deviceId, name, yearOfUse, purchasePrice, printerType, printedPages, isColor, status=DeviceStatus.Active):
+        super().__init__(deviceId, name, yearOfUse, purchasePrice, printerType, printedPages, isColor, status)
+        self._ipAddress = ""
+        self._isConnected = False
+
+    @property
+    def ipAddress(self): return self._ipAddress
+    
+    @property
+    def isConnected(self): return self._isConnected
+
+    def connect(self, ipAddress):
+        if self._isConnected:
+            return
+        if not ipAddress.strip(): raise ValueError("IP rỗng.")
+        self._ipAddress = ipAddress
+        self._isConnected = True
+        print(f"  [OK] {self._deviceId} (Máy in mạng) đã kết nối IP: {self._ipAddress}")
+
+    def disconnect(self):
+        self._ipAddress = ""
+        self._isConnected = False
