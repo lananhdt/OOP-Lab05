@@ -33,20 +33,20 @@ class DeviceStatus(Enum):
 class INetworkable(ABC):
     @property
     @abstractmethod
-    def IpAddress(self):
+    def ipAddress(self):
         pass
 
     @property
     @abstractmethod
-    def IsConnected(self):
+    def isConnected(self):
         pass
 
     @abstractmethod
-    def Connect(self, IpAddress):
+    def connect(self, ipAddress):
         pass
 
     @abstractmethod
-    def Disconnect(self):
+    def disconnect(self):
         pass
 
 # =============================================================================================
