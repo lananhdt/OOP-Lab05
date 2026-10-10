@@ -48,3 +48,55 @@ class INetworkable(ABC):
     @abstractmethod
     def Disconnect(self):
         pass
+
+# =============================================================================================
+#  ABSTRACT CLASS: DEVICE
+#  – Lớp cơ sở trừu tượng chứa các thông tin chung của mọi thiết bị
+#  – Không thể khởi tạo trực tiếp đối tượng từ lớp này
+# =============================================================================================
+class Device(ABC):
+    # =============================================================================================
+    #  CONSTRUCTOR CỦA DEVICE
+    #  – Khởi tạo thuộc tính và kiểm tra tính hợp lệ của dữ liệu đầu vào
+    # =============================================================================================
+    def __init__(self, deviceId, name, yearOfUse, purchasePrice, status=DeviceStatus.Active):
+        self._deviceId = str(deviceId).strip()
+        self.name = str(name).strip()
+        self.yearOfUse = int(yearOfUse)
+        self.purchasePrice = float(purchasePrice)
+        self.status = status
+
+        # Kiểm tra tính hợp lệ của dữ liệu thiết bị
+        if not self._deviceId:
+            raise ValueError("Mã thiết bị không được rỗng.")
+        if self.purchasePrice < 0:
+            raise ValueError("Giá mua phải lớn hơn 0.")
+        
+        currentYear = datetime.date.today().year
+        if self.yearOfUse > currentYear:
+            raise ValueError("Năm đưa vào sử dụng không được lớn hơn năm hiện tại.")
+
+    # Thuộc tính mã thiết bị chỉ được đọc (Read-only), không cho phép sửa sau khi tạo
+    @property
+    def deviceId(self):
+        return self._deviceId
+
+    # =============================================================================================
+    #  HÀM TÍNH SỐ NĂM SỬ DỤNG
+    #  – Lấy năm hiện tại trừ đi năm bắt đầu đưa vào sử dụng
+    # =============================================================================================
+    def getYearsUsed(self):
+        currentYear = datetime.date.today().year
+        return currentYear - self.yearOfUse
+
+    # =============================================================================================
+    #  HÀM TRỪU TƯỢNG: TÍNH CHI PHÍ BẢO TRÌ DỰ KIẾN
+    #  – Ép buộc các lớp con (Computer, Printer, Projector) phải tự viết công thức riêng
+    # =============================================================================================
+    @abstractmethod
+    def calculateAnnualMaintenanceCost(self):
+        pass
+
+    # Ghi đè phương thức in thông tin thiết bị dưới dạng chuỗi
+    def __str__(self):
+        return f"[{self.__class__.__name__}] ID: {self._deviceId} | Tên: {self.name} | Trạng thái: {self.status.value}"
