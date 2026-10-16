@@ -111,3 +111,22 @@ class ClassRoom:
 
     def getDevicesRequiringMaintenance(self):
         return [dev for dev in self.deviceList if dev.status == DeviceStatus.UnderMaintenance and dev.getYearsUsed() > 5]
+
+# =============================================================================================
+#  INTERFACE: IBORROWER
+#  – Biểu diễn thông tin người mượn và giới hạn số lượng thiết bị
+# =============================================================================================
+class IBorrower(ABC):
+    @property
+    @abstractmethod
+    def borrowerId(self):
+        pass
+
+    @property
+    @abstractmethod
+    def fullName(self):
+        pass
+
+    @abstractmethod
+    def getMaximumDevices(self):
+        pass
