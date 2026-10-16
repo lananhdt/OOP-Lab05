@@ -262,3 +262,48 @@ class BorrowingSlip:
         
         self._items.append(newItem)
         print(f"  [OK] Đã thêm '{device.name}' (ID: {device.deviceId}) vào phiếu {self.slipId}.")
+
+    # =============================================================================================
+    #  TRẢ THIẾT BỊ TRONG PHIẾU
+    #  – Kiểm tra hợp lệ, ghi nhận ngày trả, đổi trạng thái Available, và tính phí phạt trễ hạn
+    # =============================================================================================
+    def returnDevice(self, deviceId, returnedDate):
+        targetItem = None
+        for item in self._items:
+            if item.device.deviceId == deviceId:
+                targetItem = item
+                break
+        
+        if targetItem is None:
+            raise DeviceNotInSlipException(deviceId)
+
+        targetItem.returnDevice(returnedDate)
+        
+        # Đổi trạng thái thiết bị về kho
+        targetItem.device.markAsAvailable()
+        
+        lateDays = targetItem.getLateDays()
+        fee = lateDays * self._LATE_FEE_PER_DAY
+        
+        statusMsg = f"Đúng hạn." if lateDays == 0 else f"TRỄ {lateDays} NGÀY. Phạt: {fee:,.0f} VND"
+        print(f"  [OK] Trả '{targetItem.device.name}' thành công. {statusMsg}")
+        return fee
+
+    def calculateTotalLateFee(self):
+        totalLateFee = 0
+        for item in self._items:
+            if item.isReturned:
+                totalLateFee += item.getLateDays() * self._LATE_FEE_PER_DAY
+        return totalLateFee
+
+    def printSlipInfo(self):
+        print(f"\n--- THÔNG TIN PHIẾU MƯỢN: {self.slipId} ---")
+        print(f"  Người mượn: {self.borrower.fullName} (Quyền: Tối đa {self.borrower.getMaximumDevices()} thiết bị)")
+        print(f"  Phòng dạy : {self.teachingRoom}")
+        print(f"  Ngày mượn : {self.borrowedDate.strftime('%Y-%m-%d')}")
+        print("  DANH SÁCH THIẾT BỊ:")
+        for item in self._items:
+            retStatus = f"Đã trả ({item.returnedDate.strftime('%Y-%m-%d')})" if item.isReturned else "Chưa trả"
+            print(f"    - {item.device.deviceId} ({item.device.name}) | Hạn: {item.dueDate.strftime('%Y-%m-%d')} | {retStatus}")
+        print(f"  TỔNG PHẠT TRỄ: {self.calculateTotalLateFee():,.0f} VND")
+        print("-" * 50)
