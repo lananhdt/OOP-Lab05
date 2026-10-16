@@ -353,3 +353,27 @@ class InvalidReturnDateException(BorrowingException):
     def __init__(self, deviceId):
         self.deviceId = deviceId
         super().__init__(f"Ngày trả thiết bị '{deviceId}' không hợp lệ (trước ngày mượn).")
+
+# =============================================================================================
+#  CÁC LỚP THIẾT BỊ CỤ THỂ
+# =============================================================================================
+class AirConditionerRemote(Device):
+    def __init__(self, deviceId, name, yearOfUse, purchasePrice, maxBorrowDays=1, status=DeviceStatus.Available):
+        super().__init__(deviceId, name, yearOfUse, purchasePrice, maxBorrowDays, status)
+
+    def calculateAnnualMaintenanceCost(self):
+        return self.purchasePrice * 0.05
+
+class Microphone(Device):
+    def __init__(self, deviceId, name, yearOfUse, purchasePrice, maxBorrowDays=1, status=DeviceStatus.Available):
+        super().__init__(deviceId, name, yearOfUse, purchasePrice, maxBorrowDays, status)
+
+    def calculateAnnualMaintenanceCost(self):
+        return self.purchasePrice * 0.08
+
+class ProjectorRemote(Device):
+    def __init__(self, deviceId, name, yearOfUse, purchasePrice, maxBorrowDays=1, status=DeviceStatus.Available):
+        super().__init__(deviceId, name, yearOfUse, purchasePrice, maxBorrowDays, status)
+
+    def calculateAnnualMaintenanceCost(self):
+        return self.purchasePrice * 0.03
