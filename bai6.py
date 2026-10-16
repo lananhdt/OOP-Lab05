@@ -307,3 +307,49 @@ class BorrowingSlip:
             print(f"    - {item.device.deviceId} ({item.device.name}) | Hạn: {item.dueDate.strftime('%Y-%m-%d')} | {retStatus}")
         print(f"  TỔNG PHẠT TRỄ: {self.calculateTotalLateFee():,.0f} VND")
         print("-" * 50)
+
+# =============================================================================================
+#  HỆ THỐNG NGOẠI LỆ NGHIỆP VỤ
+# =============================================================================================
+class BorrowingException(Exception):
+    """Ngoại lệ cơ sở"""
+    pass
+
+class DeviceUnavailableException(BorrowingException):
+    def __init__(self, deviceId, currentStatus):
+        self.deviceId = deviceId
+        self.currentStatus = currentStatus
+        super().__init__(f"Thiết bị '{deviceId}' không khả dụng. Trạng thái hiện tại: {currentStatus}")
+
+class BorrowLimitExceededException(BorrowingException):
+    def __init__(self, borrowerId, maximumDevices):
+        self.borrowerId = borrowerId
+        self.maximumDevices = maximumDevices
+        super().__init__(f"Người mượn '{borrowerId}' đã vượt quá giới hạn mượn ({maximumDevices} thiết bị).")
+
+class InvalidBorrowPeriodException(BorrowingException):
+    def __init__(self, deviceId, requestedDays, maxDays):
+        self.deviceId = deviceId
+        self.requestedDays = requestedDays
+        self.maxDays = maxDays
+        super().__init__(f"Thời gian mượn thiết bị '{deviceId}' ({requestedDays} ngày) không hợp lệ hoặc vượt quá giới hạn ({maxDays} ngày).")
+
+class DuplicateDeviceException(BorrowingException):
+    def __init__(self, deviceId):
+        self.deviceId = deviceId
+        super().__init__(f"Thiết bị '{deviceId}' đã tồn tại trong phiếu mượn này.")
+
+class DeviceNotInSlipException(BorrowingException):
+    def __init__(self, deviceId):
+        self.deviceId = deviceId
+        super().__init__(f"Thiết bị '{deviceId}' không thuộc phiếu mượn này.")
+
+class DeviceAlreadyReturnedException(BorrowingException):
+    def __init__(self, deviceId):
+        self.deviceId = deviceId
+        super().__init__(f"Thiết bị '{deviceId}' đã được trả trước đó.")
+
+class InvalidReturnDateException(BorrowingException):
+    def __init__(self, deviceId):
+        self.deviceId = deviceId
+        super().__init__(f"Ngày trả thiết bị '{deviceId}' không hợp lệ (trước ngày mượn).")
