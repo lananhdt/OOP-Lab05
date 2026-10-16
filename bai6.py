@@ -212,7 +212,7 @@ class BorrowItem:
         if not self._isReturned:
             return 0
         lateDelta = (self._returnedDate - self._dueDate).days
-        return lateDelta
+        return max(0, lateDelta)
 
 # =============================================================================================
 #  CLASS: BORROWING SLIP
