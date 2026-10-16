@@ -148,3 +148,21 @@ class Lecturer(IBorrower):
 
     def getMaximumDevices(self):
         return 3
+
+# =============================================================================================
+#  CLASS: TEACHING ASSISTANT
+#  – Thực thi IBorrower. Trợ giảng được mượn tối đa 2 thiết bị.
+# =============================================================================================
+class TeachingAssistant(IBorrower):
+    def __init__(self, borrowerId, fullName):
+        self._borrowerId = borrowerId
+        self._fullName = fullName
+
+    @property
+    def borrowerId(self): return self._borrowerId
+
+    @property
+    def fullName(self): return self._fullName
+
+    def getMaximumDevices(self):
+        return 2
