@@ -25,3 +25,50 @@ class DeviceStatus(Enum):
     Borrowed = "Borrowed"
     UnderMaintenance = "Under Maintenance"
     Retired = "Retired"
+
+# =============================================================================================
+#  ABSTRACT CLASS: DEVICE
+#  – Lớp trừu tượng cho mọi thiết bị phục vụ học tập/giảng dạy
+# =============================================================================================
+class Device(ABC):
+    def __init__(self, deviceId, name, yearOfUse, purchasePrice, maxBorrowDays, status=DeviceStatus.Available):
+        self._deviceId = str(deviceId).strip()
+        self.name = str(name).strip()
+        self.yearOfUse = int(yearOfUse)
+        self.purchasePrice = float(purchasePrice)
+        self.maxBorrowDays = int(maxBorrowDays)
+        self._status = status
+
+        if not self._deviceId:
+            raise ValueError("Mã thiết bị không được rỗng.")
+        if self.purchasePrice <= 0:
+            raise ValueError("Giá mua phải lớn hơn 0.")
+        
+        currentYear = datetime.date.today().year
+        if self.yearOfUse > currentYear:
+            raise ValueError("Năm đưa vào sử dụng không được lớn hơn năm hiện tại.")
+
+    @property
+    def deviceId(self):
+        return self._deviceId
+
+    @property
+    def status(self):
+        return self._status
+
+    def markAsBorrowed(self):
+        self._status = DeviceStatus.Borrowed
+
+    def markAsAvailable(self):
+        self._status = DeviceStatus.Available
+
+    def getYearsUsed(self):
+        currentYear = datetime.date.today().year
+        return currentYear - self.yearOfUse
+
+    @abstractmethod
+    def calculateAnnualMaintenanceCost(self):
+        pass
+
+    def __str__(self):
+        return f"[{self.__class__.__name__}] ID: {self._deviceId} | Tên: {self.name} | Trạng thái: {self.status.value}"
