@@ -250,7 +250,7 @@ class BorrowingSlip:
             raise DeviceUnavailableException(device.deviceId, device.status.value)
 
         # Kiểm tra giới hạn mượn của tài khoản
-        if len(self._items) > self.borrower.getMaximumDevices():
+        if len(self._items) >= self.borrower.getMaximumDevices():
             raise BorrowLimitExceededException(self.borrower.borrowerId, self.borrower.getMaximumDevices())
 
         for item in self._items:
