@@ -234,3 +234,31 @@ class BorrowingSlip:
     @property
     def items(self):
         return self._items
+
+    # =============================================================================================
+    #  THÊM THIẾT BỊ VÀO PHIẾU
+    #  – Kiểm tra toàn bộ ngoại lệ trước, nếu pass hết mới tiến hành đổi trạng thái và thêm vào list
+    # =============================================================================================
+    def addDevice(self, device, borrowDays):
+        if device is None:
+            raise ValueError("Thiết bị yêu cầu thêm bị null.")
+        
+        if borrowDays <= 0 or borrowDays > device.maxBorrowDays:
+            raise InvalidBorrowPeriodException(device.deviceId, borrowDays, device.maxBorrowDays)
+
+        if device.status != DeviceStatus.Available:
+            raise DeviceUnavailableException(device.deviceId, device.status.value)
+
+        # Kiểm tra giới hạn mượn của tài khoản
+        if len(self._items) > self.borrower.getMaximumDevices():
+            raise BorrowLimitExceededException(self.borrower.borrowerId, self.borrower.getMaximumDevices())
+
+        for item in self._items:
+            if item.device.deviceId == device.deviceId:
+                raise DuplicateDeviceException(device.deviceId)
+
+        dueDate = self.borrowedDate + datetime.timedelta(days=borrowDays)
+        newItem = BorrowItem(device, self.borrowedDate, dueDate)
+        
+        self._items.append(newItem)
+        print(f"  [OK] Đã thêm '{device.name}' (ID: {device.deviceId}) vào phiếu {self.slipId}.")
