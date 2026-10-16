@@ -110,7 +110,7 @@ class ClassRoom:
         return sum(dev.calculateAnnualMaintenanceCost() for dev in self.deviceList)
 
     def getDevicesRequiringMaintenance(self):
-        return [dev for dev in self.deviceList if dev.status == DeviceStatus.UnderMaintenance and dev.getYearsUsed() > 5]
+        return [dev for dev in self.deviceList if dev.status == DeviceStatus.UnderMaintenance or dev.getYearsUsed() > 5]
 
 # =============================================================================================
 #  INTERFACE: IBORROWER
