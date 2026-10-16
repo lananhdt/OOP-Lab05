@@ -202,7 +202,7 @@ class BorrowItem:
     def returnDevice(self, returnedDate):
         if self._isReturned:
             raise DeviceAlreadyReturnedException(self.device.deviceId)
-        if returnedDate <= self._borrowedDate:
+        if returnedDate < self._borrowedDate:
             raise InvalidReturnDateException(self.device.deviceId)
         
         self._returnedDate = returnedDate
