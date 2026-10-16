@@ -213,3 +213,24 @@ class BorrowItem:
             return 0
         lateDelta = (self._returnedDate - self._dueDate).days
         return lateDelta
+
+# =============================================================================================
+#  CLASS: BORROWING SLIP
+#  – Phiếu mượn của một giảng viên/trợ giảng cho một phòng học
+#  – Hợp thành các BorrowItem bên trong
+# =============================================================================================
+class BorrowingSlip:
+    def __init__(self, slipId, borrower, teachingRoom, borrowedDate):
+        if not slipId or not borrower or not teachingRoom:
+            raise ValueError("Mã phiếu, người mượn và phòng học không hợp lệ (null).")
+            
+        self.slipId = slipId
+        self.borrower = borrower
+        self.teachingRoom = teachingRoom
+        self.borrowedDate = borrowedDate
+        self._items = []
+        self._LATE_FEE_PER_DAY = 50000 # 50,000 VND/ngày trễ
+
+    @property
+    def items(self):
+        return self._items
