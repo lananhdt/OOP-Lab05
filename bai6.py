@@ -259,7 +259,8 @@ class BorrowingSlip:
 
         dueDate = self.borrowedDate + datetime.timedelta(days=borrowDays)
         newItem = BorrowItem(device, self.borrowedDate, dueDate)
-        
+
+        device.markAsBorrowed()
         self._items.append(newItem)
         print(f"  [OK] Đã thêm '{device.name}' (ID: {device.deviceId}) vào phiếu {self.slipId}.")
 
