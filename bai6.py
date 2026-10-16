@@ -130,3 +130,21 @@ class IBorrower(ABC):
     @abstractmethod
     def getMaximumDevices(self):
         pass
+
+# =============================================================================================
+#  CLASS: LECTURER
+#  – Thực thi IBorrower. Giảng viên được mượn tối đa 3 thiết bị.
+# =============================================================================================
+class Lecturer(IBorrower):
+    def __init__(self, borrowerId, fullName):
+        self._borrowerId = borrowerId
+        self._fullName = fullName
+
+    @property
+    def borrowerId(self): return self._borrowerId
+
+    @property
+    def fullName(self): return self._fullName
+
+    def getMaximumDevices(self):
+        return 3
