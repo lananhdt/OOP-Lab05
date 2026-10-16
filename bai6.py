@@ -166,3 +166,50 @@ class TeachingAssistant(IBorrower):
 
     def getMaximumDevices(self):
         return 2
+
+# =============================================================================================
+#  CLASS: BORROW ITEM
+#  – Lưu thông tin mượn một thiết bị cụ thể trong phiếu mượn
+# =============================================================================================
+class BorrowItem:
+    def __init__(self, device, borrowedDate, dueDate):
+        if device is None:
+            raise ValueError("Thiết bị không được null.")
+        if dueDate < borrowedDate:
+            raise ValueError("Hạn trả không được trước ngày mượn.")
+
+        self._device = device
+        self._borrowedDate = borrowedDate
+        self._dueDate = dueDate
+        self._returnedDate = None
+        self._isReturned = False
+
+    @property
+    def device(self): return self._device
+
+    @property
+    def borrowedDate(self): return self._borrowedDate
+
+    @property
+    def dueDate(self): return self._dueDate
+
+    @property
+    def returnedDate(self): return self._returnedDate
+
+    @property
+    def isReturned(self): return self._isReturned
+
+    def returnDevice(self, returnedDate):
+        if self._isReturned:
+            raise DeviceAlreadyReturnedException(self.device.deviceId)
+        if returnedDate < self._borrowedDate:
+            raise InvalidReturnDateException(self.device.deviceId)
+        
+        self._returnedDate = returnedDate
+        self._isReturned = True
+
+    def getLateDays(self):
+        if not self._isReturned:
+            return 0
+        lateDelta = (self._returnedDate - self._dueDate).days
+        return lateDelta
