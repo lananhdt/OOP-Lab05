@@ -72,3 +72,42 @@ class Device(ABC):
 
     def __str__(self):
         return f"[{self.__class__.__name__}] ID: {self._deviceId} | Tên: {self.name} | Trạng thái: {self.status.value}"
+
+# =============================================================================================
+#  CLASS: CLASSROOM (Lớp học - Quan hệ kết tập với Device)
+#  – Quản lý danh sách thiết bị cố định được lắp đặt trong một phòng
+# =============================================================================================
+class ClassRoom:
+    def __init__(self, roomId, name, capacity):
+        self.roomId = roomId
+        self.name = name
+        self.capacity = capacity
+        self.deviceList = []
+
+    def addDevice(self, device):
+        if device is None:
+            raise ValueError("Thiết bị không được null.")
+        if self.findDevice(device.deviceId):
+            print(f"  [!] Lỗi: Thiết bị mã {device.deviceId} đã tồn tại trong phòng {self.name}.")
+            return
+        self.deviceList.append(device)
+        print(f"  [+] Đã phân bổ '{device.deviceId}' vào {self.name}.")
+
+    def removeDevice(self, deviceId):
+        dev = self.findDevice(deviceId)
+        if dev:
+            self.deviceList.remove(dev)
+            return True
+        return False
+
+    def findDevice(self, deviceId):
+        for dev in self.deviceList:
+            if dev.deviceId == deviceId:
+                return dev
+        return None
+
+    def calculateAnnualMaintenanceCost(self):
+        return sum(dev.calculateAnnualMaintenanceCost() for dev in self.deviceList)
+
+    def getDevicesRequiringMaintenance(self):
+        return [dev for dev in self.deviceList if dev.status == DeviceStatus.UnderMaintenance and dev.getYearsUsed() > 5]
