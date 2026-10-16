@@ -377,3 +377,89 @@ class ProjectorRemote(Device):
 
     def calculateAnnualMaintenanceCost(self):
         return self.purchasePrice * 0.03
+
+# =============================================================================================
+#  KỊCH BẢN KIỂM THỬ
+# =============================================================================================
+def runTests():
+    print("============= KHỞI TẠO DỮ LIỆU =============")
+    # 1. Tạo Giảng viên và Trợ giảng
+    lecturer = Lecturer("GV01", "PGS.TS Lê Mai Trang")
+    ta = TeachingAssistant("TA01", "Trợ giảng Bùi Thu Huyền")
+
+    # 2. Tạo thiết bị
+    d_air = AirConditionerRemote("AC01", "ĐK Điều hòa 01", 2022, 500000)
+    d_mic = Microphone("MIC01", "Micro Không Dây", 2023, 1500000)
+    d_proj = ProjectorRemote("PRJ01", "ĐK Máy chiếu", 2021, 300000)
+    d_air_broken = AirConditionerRemote("AC02", "ĐK Điều hòa Hỏng", 2020, 500000, status=DeviceStatus.UnderMaintenance)
+
+    today = datetime.datetime.now()
+
+    print("\n--- 11.1. LUỒNG THÀNH CÔNG ---")
+    try:
+        # 3. Tạo phiếu mượn cho một phòng dạy
+        slip1 = BorrowingSlip("S001", lecturer, "Phòng 302-D3", today)
+        
+        # 4. Thêm điều khiển máy chiếu và micro vào phiếu
+        slip1.addDevice(d_proj, 1)
+        slip1.addDevice(d_mic, 1)
+        
+        # 5. Trả điều khiển máy chiếu đúng hạn
+        slip1.returnDevice("PRJ01", today)
+        
+        # 6. Trả micro muộn 2 ngày
+        slip1.returnDevice("MIC01", today + datetime.timedelta(days=3)) # Muộn 2 ngày so với hạn (hạn là +1)
+        
+        # 7. Hiển thị
+        slip1.printSlipInfo()
+        
+    except Exception as e:
+        print(f"  [!] Lỗi bất thường trong luồng thành công: {e}")
+
+    print("\n--- 11.2. LUỒNG PHÁT SINH NGOẠI LỆ ---")
+    slip2 = BorrowingSlip("S002", ta, "Phòng 101-D9", today)
+    
+    def runExceptionTest(testName, func, *args):
+        print(f"\n  > {testName}")
+        try:
+            func(*args)
+            print("    [!] Thất bại")
+        except BorrowingException as e:
+            print(f"    [OK] Bắt được Custom Exception: {e}")
+        except Exception as e:
+            print(f"    [OK] Bắt được Exception cơ bản: {e}")
+
+    # 1. Mượn điều khiển điều hòa đang UnderMaintenance
+    runExceptionTest("Test 1: Mượn thiết bị đang bảo trì", slip2.addDevice, d_air_broken, 1)
+
+    # 2. Trợ giảng mượn thiết bị thứ ba (giới hạn 2)
+    slip2.addDevice(d_air, 1)
+    d_mic2 = Microphone("MIC02", "Micro 02", 2023, 1500000)
+    slip2.addDevice(d_mic2, 1)
+    d_proj2 = ProjectorRemote("PRJ02", "ĐK Máy chiếu 02", 2023, 300000)
+    runExceptionTest("Test 2: Trợ giảng mượn thiết bị thứ 3 (vượt giới hạn)", slip2.addDevice, d_proj2, 1)
+
+    # 3. Thêm cùng một thiết bị hai lần
+    runExceptionTest("Test 3: Thêm cùng một thiết bị hai lần", slip2.addDevice, d_air, 1)
+
+    # 4. Mượn micro trong 3 ngày dù giới hạn là 1 ngày
+    d_mic3 = Microphone("MIC03", "Micro 03", 2023, 1500000, maxBorrowDays=1)
+    slip3 = BorrowingSlip("S003", lecturer, "Phòng 205-D7", today)
+    runExceptionTest("Test 4: Mượn quá thời hạn giới hạn thiết bị (3 ngày)", slip3.addDevice, d_mic3, 3)
+
+    # 5. Trả một điều khiển máy chiếu không thuộc phiếu
+    runExceptionTest("Test 5: Trả thiết bị không thuộc phiếu", slip2.returnDevice, "PRJ99", today)
+
+    # 6. Trả cùng một thiết bị hai lần
+    slip2.returnDevice("AC01", today) # Trả lần 1 thành công
+    runExceptionTest("Test 6: Trả cùng một thiết bị hai lần", slip2.returnDevice, "AC01", today)
+
+    # 7. Trả thiết bị với ngày trả trước ngày mượn
+    d_proj3 = ProjectorRemote("PRJ03", "ĐK Máy chiếu 03", 2023, 300000)
+    slip3.addDevice(d_proj3, 1)
+    runExceptionTest("Test 7: Ngày trả trước ngày mượn", slip3.returnDevice, "PRJ03", today - datetime.timedelta(days=5))
+
+    print("\n================== HOÀN TẤT KIỂM THỬ ==================")
+
+if __name__ == "__main__":
+    runTests()
