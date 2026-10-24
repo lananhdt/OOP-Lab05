@@ -229,3 +229,32 @@ class FirstAvailableStrategy(ISelectionStrategy[T]):
         if not candidates:
             return None
         return candidates[0]
+
+
+# =============================================================================================
+#  DỊCH VỤ CẤP PHÁT TỔNG QUÁT
+#  – Đảm bảo khi có thêm thiết bị mới, lớp này không cần sửa mã.
+# =============================================================================================
+T_Device = TypeVar('T_Device', bound=TeachingDevice)
+
+class AllocationService(Generic[T_Device]):
+    def __init__(self, repository: IRepository[T_Device], strategy: ISelectionStrategy[T_Device]):
+        self.repository = repository
+        self.strategy = strategy
+
+    def changeStrategy(self, newStrategy: ISelectionStrategy[T_Device]):
+        self.strategy = newStrategy
+        print("  [*] Đã thay đổi chiến lược lựa chọn thành công.")
+
+    def allocate(self, additionalCondition: Callable[[T_Device], bool] = lambda d: True) -> T_Device:
+        allDevices = self.repository.getAll()
+        
+        # Lọc các thiết bị sẵn sàng
+        validCandidates = [dev for dev in allDevices if dev.isReadyForUse()]
+        
+        # Áp dụng chiến lược để chọn ra thiết bị tốt nhất
+        selectedDevice = self.strategy.select(validCandidates)
+        
+        # Tiến hành cấp phát
+        selectedDevice.borrow()
+        return selectedDevice
