@@ -35,3 +35,50 @@ class IIdentifiable(ABC):
     @abstractmethod
     def id(self) -> str:
         pass
+
+
+# =============================================================================================
+#  ABSTRACT CLASS: TEACHING DEVICE
+#  – Lớp cơ sở trừu tượng thực thi IIdentifiable
+#  – Định nghĩa khung thông tin chung và hành vi mượn/trả của thiết bị
+# =============================================================================================
+class TeachingDevice(IIdentifiable):
+    def __init__(self, deviceId: str, name: str, storageLocation: str):
+        if not deviceId or not name or not storageLocation:
+            raise ValueError("ID, Tên và Vị trí lưu trữ không được rỗng.")
+            
+        self._id = deviceId.strip()
+        self.name = name.strip()
+        self.storageLocation = storageLocation.strip()
+        self._status = DeviceStatus.Available
+
+    @property
+    def id(self) -> str:
+        return self._id
+
+    @property
+    def status(self) -> DeviceStatus:
+        return self._status
+
+    def borrow(self):
+        # Borrow() chỉ thành công nếu IsReadyForUse() trả về true
+        if not self.isReadyForUse():
+            raise DeviceNotReadyException(self.id, self.status.value)
+        self._status = DeviceStatus.Borrowed
+
+    def returnDevice(self):
+        # Return() chỉ thành công nếu trạng thái là Borrowed
+        if self._status != DeviceStatus.Borrowed:
+            raise Exception(f"Thiết bị '{self.id}' đang không được mượn.")
+        self._status = DeviceStatus.Available
+
+    # Cài đặt đa hình ở các lớp dẫn xuất
+    @abstractmethod
+    def isReadyForUse(self) -> bool:
+        pass
+    @abstractmethod
+    def getDefaultPriorityScore(self) -> float:
+        pass
+
+    def __str__(self):
+        return f"[{self.__class__.__name__}] ID: {self.id} | {self.name} | TT: {self.status.value}"
