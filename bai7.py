@@ -135,3 +135,26 @@ class WirelessMicrophone(TeachingDevice):
     # Điểm ưu tiên mặc định bằng trung bình của pin và chất lượng tín hiệu
     def getDefaultPriorityScore(self) -> float:
         return (self.batteryLevel + self.signalQuality) / 2.0
+
+
+# =============================================================================================
+#  KHO LƯU TRỮ TỔNG QUÁT
+#  – Sử dụng Generics Constraint để đảm bảo kho chỉ lưu các đối tượng chắc chắn có ID
+# =============================================================================================
+T = TypeVar('T', bound=IIdentifiable)
+
+class IRepository(Generic[T], ABC):
+    @abstractmethod
+    def add(self, item: T): pass
+
+    @abstractmethod
+    def remove(self, itemId: str) -> bool: pass
+
+    @abstractmethod
+    def findById(self, itemId: str) -> Optional[T]: pass
+
+    @abstractmethod
+    def getAll(self) -> List[T]: pass
+
+    @abstractmethod
+    def findAll(self, condition: Callable[[T], bool]) -> List[T]: pass
