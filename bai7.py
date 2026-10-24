@@ -228,7 +228,7 @@ class FirstAvailableStrategy(ISelectionStrategy[T]):
     # Chọn phần tử đầu tiên trong danh sách ứng viên
     def select(self, candidates: List[T]) -> T:
         if not candidates:
-            return None
+            raise NoSuitableItemException()
         return candidates[0]
 
 
