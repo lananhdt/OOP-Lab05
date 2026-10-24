@@ -251,7 +251,7 @@ class AllocationService(Generic[T_Device]):
         allDevices = self.repository.getAll()
         
         # Lọc các thiết bị sẵn sàng
-        validCandidates = [dev for dev in allDevices if dev.isReadyForUse()]
+        validCandidates = [dev for dev in allDevices if dev.isReadyForUse() and additionalCondition(dev)]
         
         # Áp dụng chiến lược để chọn ra thiết bị tốt nhất
         selectedDevice = self.strategy.select(validCandidates)
