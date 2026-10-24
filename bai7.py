@@ -258,3 +258,22 @@ class AllocationService(Generic[T_Device]):
         # Tiến hành cấp phát
         selectedDevice.borrow()
         return selectedDevice
+
+
+# =============================================================================================
+#  NGOẠI LỆ NGHIỆP VỤ (EXCEPTIONS)
+# =============================================================================================
+class DuplicateIdException(Exception):
+    def __init__(self, duplicateId: str):
+        self.duplicateId = duplicateId
+        super().__init__(f"Lỗi: Mã thiết bị '{duplicateId}' đã tồn tại trong kho.")
+
+class NoSuitableItemException(Exception):
+    def __init__(self):
+        super().__init__("Lỗi: Không tìm thấy thiết bị nào phù hợp với yêu cầu.")
+
+class DeviceNotReadyException(Exception):
+    def __init__(self, deviceId: str, currentStatus: str):
+        self.deviceId = deviceId
+        self.currentStatus = currentStatus
+        super().__init__(f"Lỗi: Thiết bị '{deviceId}' chưa sẵn sàng. Trạng thái: {currentStatus}")
