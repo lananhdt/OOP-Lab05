@@ -130,7 +130,7 @@ class WirelessMicrophone(TeachingDevice):
 
     # Micro: Sẵn sàng khi trạng thái là Available, pin >= 30%, tín hiệu >= 40%
     def isReadyForUse(self) -> bool:
-        return self.status == DeviceStatus.Available or self.batteryLevel >= 30 or self.signalQuality >= 40
+        return self.status == DeviceStatus.Available and self.batteryLevel >= 30 and self.signalQuality >= 40
 
     # Điểm ưu tiên mặc định bằng trung bình của pin và chất lượng tín hiệu
     def getDefaultPriorityScore(self) -> float:
