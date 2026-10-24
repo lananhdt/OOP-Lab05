@@ -158,3 +158,35 @@ class IRepository(Generic[T], ABC):
 
     @abstractmethod
     def findAll(self, condition: Callable[[T], bool]) -> List[T]: pass
+
+
+# =============================================================================================
+#  CLASS: IN-MEMORY REPOSITORY
+#  – Thực thi IRepository. Dùng Dictionary thay vì List
+# =============================================================================================
+class InMemoryRepository(IRepository[T]):
+    def __init__(self):
+        self._items: Dict[str, T] = {}
+
+    def add(self, item: T):
+        if item is None:
+            raise ValueError("Không chấp nhận phần tử null.")
+        if item in self._items:
+            raise DuplicateIdException(item.id)
+        self._items[item.id] = item
+
+    def remove(self, itemId: str) -> bool:
+        if itemId in self._items:
+            del self._items[itemId]
+            return True
+        return False
+
+    def findById(self, itemId: str) -> Optional[T]:
+        return self._items.get(itemId, None)
+
+    def getAll(self) -> List[T]:
+        # Trả về bản sao tránh lộ collection nội bộ để mã ngoài tùy ý sửa
+        return list(self._items.values())
+
+    def findAll(self, condition: Callable[[T], bool]) -> List[T]:
+        return [item for item in self._items.values() if condition(item)]
