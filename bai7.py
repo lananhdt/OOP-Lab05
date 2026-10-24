@@ -219,6 +219,7 @@ class HighestPriorityStrategy(ISelectionStrategy[T]):
             score = self.scoreSelector(item)
             if score > highestScore:
                 highestScore = score
+                bestCandidate = item
                 
         return bestCandidate
 
