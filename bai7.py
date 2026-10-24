@@ -190,3 +190,42 @@ class InMemoryRepository(IRepository[T]):
 
     def findAll(self, condition: Callable[[T], bool]) -> List[T]:
         return [item for item in self._items.values() if condition(item)]
+
+
+# =============================================================================================
+#  CHIẾN LƯỢC LỰA CHỌN THIẾT BỊ BẰNG ĐA HÌNH VÀ GENERIC
+#  – Áp dụng đa hình thuật toán: Cho phép thay đổi cách chọn thiết bị tại Runtime
+# =============================================================================================
+class ISelectionStrategy(Generic[T], ABC):
+    # Interface chiến lược
+    @abstractmethod
+    def select(self, candidates: List[T]) -> T:
+        pass
+
+
+class HighestPriorityStrategy(ISelectionStrategy[T]):
+    # Chọn đối tượng có điểm ưu tiên cao nhất
+    def __init__(self, scoreSelector: Callable[[T], float]):
+        self.scoreSelector = scoreSelector
+
+    def select(self, candidates: List[T]) -> T:
+        if not candidates:
+            raise NoSuitableItemException()
+        
+        bestCandidate = candidates[0]
+        highestScore = self.scoreSelector(bestCandidate)
+        
+        for item in candidates[1:]:
+            score = self.scoreSelector(item)
+            if score > highestScore:
+                highestScore = score
+                
+        return bestCandidate
+
+
+class FirstAvailableStrategy(ISelectionStrategy[T]):
+    # Chọn phần tử đầu tiên trong danh sách ứng viên
+    def select(self, candidates: List[T]) -> T:
+        if not candidates:
+            return None
+        return candidates[0]
