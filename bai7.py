@@ -277,3 +277,88 @@ class DeviceNotReadyException(Exception):
         self.deviceId = deviceId
         self.currentStatus = currentStatus
         super().__init__(f"Lỗi: Thiết bị '{deviceId}' chưa sẵn sàng. Trạng thái: {currentStatus}")
+
+
+# =============================================================================================
+#  KIỂM THỬ
+# =============================================================================================
+def runTests():
+    print("============= KHỞI TẠO DỮ LIỆU =============")
+    projRepo = InMemoryRepository[ProjectorRemote]()
+    acRepo = InMemoryRepository[AirConditionerRemote]()
+    micRepo = InMemoryRepository[WirelessMicrophone]()
+
+    # 1. Thêm thiết bị vào repository
+    proj1 = ProjectorRemote("PRJ-01", "ĐK Máy chiếu Sony", "Tủ 1", 10) # Pin yếu (<20)
+    proj2 = ProjectorRemote("PRJ-02", "ĐK Máy chiếu Pana", "Tủ 1", 90) # Pin cao
+    proj3 = ProjectorRemote("PRJ-03", "ĐK Máy chiếu Optoma", "Tủ 2", 60) # Pin vừa
+    
+    ac1 = AirConditionerRemote("AC-01", "ĐK Điều hòa 1", "Tủ 1", {"D3-301", "D3-302"})
+    ac2 = AirConditionerRemote("AC-02", "ĐK Điều hòa 2", "Tủ 2", {"D9-101"})
+    
+    mic1 = WirelessMicrophone("MIC-01", "Micro 1", "Tủ 1", 20, 90)
+    mic2 = WirelessMicrophone("MIC-02", "Micro 2", "Tủ 2", 80, 30)
+    mic3 = WirelessMicrophone("MIC-03", "Micro 3", "Tủ 3", 95, 95)
+    
+    projRepo.add(proj1); projRepo.add(proj2); projRepo.add(proj3)
+    acRepo.add(ac1); acRepo.add(ac2)
+    micRepo.add(mic1); micRepo.add(mic2); micRepo.add(mic3)
+    print("  [+] Đã khởi tạo và thêm thiết bị vào kho thành công.")
+
+    print("\n2. THỬ THÊM HAI THIẾT BỊ TRÙNG MÃ")
+    try:
+        projRepo.add(ProjectorRemote("PRJ-01", "ĐK Trùng", "Kho", 100))
+    except DuplicateIdException as e:
+        print(f"  [OK] Bắt lỗi trùng lặp: {e}")
+
+    print("\n3. TÌM THIẾT BỊ THEO MÃ")
+    foundDev = projRepo.findById("PRJ-02")
+    print(f"  [OK] Đã tìm thấy: {foundDev}")
+
+    print("\n4. LỌC CÁC THIẾT BỊ SẴN SÀNG (Lọc Máy Chiếu)")
+    readyProjs = projRepo.findAll(lambda d: d.isReadyForUse())
+    for p in readyProjs:
+        print(f"  - {p.id} (Pin: {p.batteryLevel}%)")
+
+    print("\n5. CHỌN ĐIỀU KHIỂN MÁY CHIẾU CÓ ĐIỂM CAO NHẤT")
+    highPriorityStrategy = HighestPriorityStrategy[ProjectorRemote](lambda d: d.getDefaultPriorityScore())
+    projService = AllocationService[ProjectorRemote](projRepo, highPriorityStrategy)
+    bestProj = projService.allocate()
+    print(f"  [OK] Đã cấp phát máy chiếu xịn nhất: {bestProj.id} (Pin {bestProj.batteryLevel}%)")
+
+    print("\n6. CHỌN ĐIỀU KHIỂN ĐIỀU HÒA TƯƠNG THÍCH PHÒNG D3-302")
+    firstAvailStrategyAC = FirstAvailableStrategy[AirConditionerRemote]()
+    acService = AllocationService[AirConditionerRemote](acRepo, firstAvailStrategyAC)
+    matchedAC = acService.allocate(lambda d: d.isCompatibleWith("D3-302"))
+    print(f"  [OK] Đã cấp phát ĐK Điều hòa phù hợp: {matchedAC.id}")
+
+    print("\n7. CHỌN MICRO ĐẦU TIÊN SẴN SÀNG")
+    firstAvailStrategyMic = FirstAvailableStrategy[WirelessMicrophone]()
+    micService = AllocationService[WirelessMicrophone](micRepo, firstAvailStrategyMic)
+    bestMic = micService.allocate()
+    print(f"  [OK] Đã cấp phát Micro đầu tiên dùng được: {bestMic.id} (Pin {bestMic.batteryLevel}%, Sóng {bestMic.signalQuality}%)")
+
+    print("\n8. ĐỔI CHIẾN LƯỢC TRONG THỜI GIAN CHẠY")
+    # Hiện PRJ-02 đã bị mượn ở bước 5. Đổi chiến lược sang lấy cái đầu tiên sẵn sàng (sẽ ra PRJ-03)
+    firstAvailStrategyProj = FirstAvailableStrategy[ProjectorRemote]()
+    projService.changeStrategy(firstAvailStrategyProj)
+    nextProj = projService.allocate()
+    print(f"  [OK] Sau khi đổi chiến lược, hệ thống cấp phát: {nextProj.id}")
+
+    print("\n9. THỬ CẤP PHÁT KHI KHÔNG CÓ ỨNG VIÊN PHÙ HỢP")
+    try:
+        # Tìm ĐK điều hòa cho phòng không tồn tại
+        failedAC = acService.allocate(lambda d: d.isCompatibleWith("X-999"))
+    except NoSuitableItemException as e:
+        print(f"  [OK] Bắt lỗi khi hết đồ: {e}")
+
+    print("\n10. CHỨNG MINH THIẾT BỊ CHUYỂN SANG BORROWED")
+    print(f"  - Trạng thái của {bestProj.id} hiện tại: {bestProj.status.value}")
+
+    print("\n11. CHỨNG MINH REPOSITORY TỔNG QUÁT TÁI SỬ DỤNG MÃ")
+    print(f"  - Tổng ĐK Máy chiếu trong kho: {len(projRepo.getAll())}")
+    print(f"  - Tổng ĐK Điều hòa trong kho: {len(acRepo.getAll())}")
+    print("  => Cả 2 đều dùng chung class InMemoryRepository mà không cần viết lại mã!")
+
+if __name__ == "__main__":
+    runTests()
