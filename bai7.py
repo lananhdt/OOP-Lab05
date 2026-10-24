@@ -70,7 +70,7 @@ class TeachingDevice(IIdentifiable):
         # Return() chỉ thành công nếu trạng thái là Borrowed
         if self._status != DeviceStatus.Borrowed:
             raise Exception(f"Thiết bị '{self.id}' đang không được mượn.")
-        self._status = DeviceStatus.Borrowed
+        self._status = DeviceStatus.Available
 
     # Cài đặt đa hình ở các lớp dẫn xuất
     @abstractmethod
