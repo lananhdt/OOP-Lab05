@@ -77,3 +77,44 @@ class Event:
     def invoke(self, sender: Any, args: Any):
         for handler in self._handlers:
             handler(sender, args)
+
+# =============================================================================================
+#  5. LỚP TRỪU TƯỢNG TEACHING DEVICE (PUBLISHER)
+# =============================================================================================
+class TeachingDevice:
+    def __init__(self, deviceId: str, name: str):
+        self._id = deviceId.strip()
+        self._name = name.strip()
+        self._status = DeviceStatus.Available
+        
+        # Events
+        self.statusChanged = Event()
+        self.alertRaised = Event()
+
+    @property
+    def id(self) -> str: return self._id
+
+    @property
+    def name(self) -> str: return self._name
+
+    @property
+    def status(self) -> DeviceStatus: return self._status
+
+    def changeStatus(self, newStatus: DeviceStatus):
+        if self._status == newStatus:
+            return  # Không phát sinh event nếu trạng thái không đổi
+            
+        oldStatus = self._status
+        self._status = newStatus  # Cập nhật trạng thái trước
+        
+        # Phát sinh event sau khi cập nhật
+        self._onStatusChanged(DeviceStatusChangedEventArgs(self.id, oldStatus, newStatus, datetime.now()))
+
+    def _raiseAlert(self, message: str, severity: AlertSeverity):
+        self._onAlertRaised(DeviceAlertEventArgs(self.id, message, severity, datetime.now()))
+
+    def _onStatusChanged(self, e: DeviceStatusChangedEventArgs):
+        self.statusChanged.invoke(self, e)
+
+    def _onAlertRaised(self, e: DeviceAlertEventArgs):
+        self.alertRaised.invoke(self, e)
