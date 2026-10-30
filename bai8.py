@@ -251,3 +251,55 @@ class DeviceMonitoringCoordinator:
 
     def dispose(self):
         self.unsubscribe()
+
+# =============================================================================================
+#  KIỂM THỬ
+# =============================================================================================
+def runTests():
+    print("============= KHỞI TẠO HỆ THỐNG =============")
+    proj = ProjectorRemote("PRJ-01", "Máy chiếu Sony")
+    ac = AirConditionerRemote("AC-01", "Điều hòa LG", "D3-301")
+    mic = WirelessMicrophone("MIC-01", "Micro Shure")
+    devices = [proj, ac, mic]
+
+    notifSvc = ConsoleNotificationService()
+    loggerSvc = DeviceAuditLogger()
+    maintSvc = MaintenanceService()
+
+    coordinator = DeviceMonitoringCoordinator(devices, notifSvc, loggerSvc, maintSvc)
+    coordinator.subscribe()
+
+    print("\n1. TEST THAY ĐỔI TRẠNG THÁI (Ghi Log)")
+    proj.changeStatus(DeviceStatus.Borrowed)
+    proj.changeStatus(DeviceStatus.Borrowed) # Trạng thái không đổi => Không log
+    ac.changeStatus(DeviceStatus.UnderMaintenance)
+
+    print("\n2. TEST CẢNH BÁO WARNING (Chỉ Console Notif xử lý)")
+    proj.updateBatteryLevel(15) 
+    mic.updateBatteryLevel(25)
+    mic.updateSignalQuality(35)
+
+    print("\n3. TEST CẢNH BÁO CRITICAL (Cả Console và Maintenance xử lý)")
+    proj.updateBatteryLevel(0)
+    ac.updateResponseState(False) 
+
+    print("\n4. TEST BỘ LỌC DELEGATE ĐỘC LẬP (FilteredAlertSubscriber)")
+    def myFilter(e: DeviceAlertEventArgs): return e.severity == AlertSeverity.Critical
+    def myAction(e: DeviceAlertEventArgs): print(f"  [FILTERED ALERT] Thiết bị {e.deviceId} cần sửa ngay!")
+    
+    customSubscriber = FilteredAlertSubscriber(myFilter, myAction)
+    mic.alertRaised += customSubscriber.handleAlert # Đăng ký thêm
+    mic.updateSignalQuality(0) # Mất sóng -> Kích hoạt Critical
+
+    print("\n5. TEST NGOẠI LỆ GIÁ TRỊ KHÔNG HỢP LỆ")
+    try:
+        proj.updateBatteryLevel(-5)
+    except InvalidDeviceReadingException as e:
+        print(f"  [OK] Bắt lỗi: {e}")
+
+    print("\n6. TEST HỦY ĐĂNG KÝ (UNSUBSCRIBE)")
+    coordinator.dispose()
+    proj.changeStatus(DeviceStatus.Available) # Sẽ không có Log nào hiện ra
+
+if __name__ == "__main__":
+    runTests()
