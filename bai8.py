@@ -176,3 +176,30 @@ class WirelessMicrophone(TeachingDevice):
             self._raiseAlert("Mất hoàn toàn tín hiệu.", AlertSeverity.Critical)
         elif self.signalQuality < 40:
             self._raiseAlert("Chất lượng tín hiệu kém (< 40%).", AlertSeverity.Warning)
+
+# =============================================================================================
+#  7. CÁC SUBSCRIBERS
+# =============================================================================================
+class ConsoleNotificationService:
+    def handleAlert(self, sender: Any, e: DeviceAlertEventArgs):
+        print(f"  [NOTIFY] [{e.severity.value}] {e.deviceId}: {e.message}")
+
+class DeviceAuditLogger:
+    def __init__(self):
+        self.entries: List[str] = []
+
+    def handleStatusChanged(self, sender: Any, e: DeviceStatusChangedEventArgs):
+        logMsg = f"{e.changedAt.strftime('%H:%M:%S')} - {e.deviceId}: {e.oldStatus.value} -> {e.newStatus.value}"
+        self.entries.append(logMsg)
+        print(f"  [LOG] {logMsg}")
+
+class MaintenanceService:
+    def __init__(self):
+        self.requests: List[str] = []
+
+    def handleCriticalAlert(self, sender: Any, e: DeviceAlertEventArgs):
+        if e.severity != AlertSeverity.Critical:
+            return
+        reqMsg = f"Maintenance request cho {e.deviceId}: {e.message}"
+        self.requests.append(reqMsg)
+        print(f"  [MAINTENANCE] {reqMsg}")
