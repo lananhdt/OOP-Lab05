@@ -27,3 +27,23 @@ class AlertSeverity(Enum):
     Information = "Information"
     Warning = "Warning"
     Critical = "Critical"
+
+# =============================================================================================
+#  2. CLASSES DỮ LIỆU SỰ KIỆN (EVENT ARGS)
+# =============================================================================================
+class EventArgs:
+    pass
+
+class DeviceStatusChangedEventArgs(EventArgs):
+    def __init__(self, deviceId: str, oldStatus: DeviceStatus, newStatus: DeviceStatus, changedAt: datetime):
+        self.deviceId = deviceId
+        self.oldStatus = oldStatus
+        self.newStatus = newStatus
+        self.changedAt = changedAt
+
+class DeviceAlertEventArgs(EventArgs):
+    def __init__(self, deviceId: str, message: str, severity: AlertSeverity, occurredAt: datetime):
+        self.deviceId = deviceId
+        self.message = message
+        self.severity = severity
+        self.occurredAt = occurredAt
