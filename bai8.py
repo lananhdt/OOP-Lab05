@@ -6,7 +6,7 @@ Họ tên: Đinh Thị Lan Anh
 """
 
 # =============================================================================================
-#  HỆ THỐNG QUẢN LÝ THIẾT BỊ DẠY HỌC (LAB 08)
+#  HỆ THỐNG QUẢN LÝ THIẾT BỊ DẠY HỌC
 #  – Áp dụng Event-Driven Architecture (Publisher - Subscriber)
 #  – Áp dụng Delegate/Callback cho cơ chế lọc cảnh báo (Alert Filter)
 # =============================================================================================
@@ -56,3 +56,24 @@ class InvalidDeviceReadingException(Exception):
         self.deviceId = deviceId
         self.invalidValue = invalidValue
         super().__init__(f"Lỗi: Giá trị {invalidValue} không hợp lệ cho thiết bị {deviceId} (Phải từ 0-100).")
+
+# =============================================================================================
+#  4. GIẢ LẬP EVENT
+# =============================================================================================
+class Event:
+    def __init__(self):
+        self._handlers: List[Callable[[Any, Any], None]] = []
+
+    def __iadd__(self, handler: Callable[[Any, Any], None]):
+        if handler not in self._handlers:
+            self._handlers.append(handler)
+        return self
+
+    def __isub__(self, handler: Callable[[Any, Any], None]):
+        if handler in self._handlers:
+            self._handlers.remove(handler)
+        return self
+
+    def invoke(self, sender: Any, args: Any):
+        for handler in self._handlers:
+            handler(sender, args)
