@@ -118,3 +118,61 @@ class TeachingDevice:
 
     def _onAlertRaised(self, e: DeviceAlertEventArgs):
         self.alertRaised.invoke(self, e)
+
+# =============================================================================================
+#  6. CÁC LỚP THIẾT BỊ CỤ THỂ
+# =============================================================================================
+class ProjectorRemote(TeachingDevice):
+    def __init__(self, deviceId: str, name: str):
+        super().__init__(deviceId, name)
+        self.batteryLevel = 100
+
+    def updateBatteryLevel(self, newLevel: int):
+        if newLevel < 0 or newLevel > 100:
+            raise InvalidDeviceReadingException(self.id, newLevel)
+            
+        self.batteryLevel = newLevel
+        if self.batteryLevel == 0:
+            self._raiseAlert("Pin cạn kiệt (0%).", AlertSeverity.Critical)
+        elif self.batteryLevel < 20:
+            self._raiseAlert("Pin yếu dưới 20%.", AlertSeverity.Warning)
+
+class AirConditionerRemote(TeachingDevice):
+    def __init__(self, deviceId: str, name: str, assignedRoom: str):
+        super().__init__(deviceId, name)
+        self.assignedRoom = assignedRoom
+        self.isResponsive = True
+
+    def updateResponseState(self, isResponsive: bool):
+        if self.isResponsive and not isResponsive:
+            self.isResponsive = False
+            self._raiseAlert(f"Mất kết nối với phòng {self.assignedRoom}.", AlertSeverity.Critical)
+        elif not self.isResponsive and isResponsive:
+            self.isResponsive = True
+            self._raiseAlert("Đã khôi phục kết nối.", AlertSeverity.Information)
+
+class WirelessMicrophone(TeachingDevice):
+    def __init__(self, deviceId: str, name: str):
+        super().__init__(deviceId, name)
+        self.batteryLevel = 100
+        self.signalQuality = 100
+
+    def updateBatteryLevel(self, newLevel: int):
+        if newLevel < 0 or newLevel > 100:
+            raise InvalidDeviceReadingException(self.id, newLevel)
+            
+        self.batteryLevel = newLevel
+        if self.batteryLevel == 0:
+            self._raiseAlert("Micro hết sạch pin.", AlertSeverity.Critical)
+        elif self.batteryLevel < 30:
+            self._raiseAlert("Pin Micro yếu (< 30%).", AlertSeverity.Warning)
+
+    def updateSignalQuality(self, newQuality: int):
+        if newQuality < 0 or newQuality > 100:
+            raise InvalidDeviceReadingException(self.id, newQuality)
+            
+        self.signalQuality = newQuality
+        if self.signalQuality == 0:
+            self._raiseAlert("Mất hoàn toàn tín hiệu.", AlertSeverity.Critical)
+        elif self.signalQuality < 40:
+            self._raiseAlert("Chất lượng tín hiệu kém (< 40%).", AlertSeverity.Warning)
