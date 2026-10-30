@@ -47,3 +47,12 @@ class DeviceAlertEventArgs(EventArgs):
         self.message = message
         self.severity = severity
         self.occurredAt = occurredAt
+
+# =============================================================================================
+#  3. EXCEPTION
+# =============================================================================================
+class InvalidDeviceReadingException(Exception):
+    def __init__(self, deviceId: str, invalidValue: int):
+        self.deviceId = deviceId
+        self.invalidValue = invalidValue
+        super().__init__(f"Lỗi: Giá trị {invalidValue} không hợp lệ cho thiết bị {deviceId} (Phải từ 0-100).")
