@@ -203,3 +203,51 @@ class MaintenanceService:
         reqMsg = f"Maintenance request cho {e.deviceId}: {e.message}"
         self.requests.append(reqMsg)
         print(f"  [MAINTENANCE] {reqMsg}")
+
+# =============================================================================================
+#  8. DELEGATE/CALLBACK VÀ CHÍNH SÁCH LỌC THÔNG BÁO
+# =============================================================================================
+# Delegate tự định nghĩa trong Python bằng Type Hinting
+AlertFilter = Callable[[DeviceAlertEventArgs], bool]
+AlertAction = Callable[[DeviceAlertEventArgs], None]
+
+class FilteredAlertSubscriber:
+    def __init__(self, filterFunc: AlertFilter, actionFunc: AlertAction):
+        self.filterFunc = filterFunc
+        self.actionFunc = actionFunc
+
+    def handleAlert(self, sender: Any, e: DeviceAlertEventArgs):
+        if self.filterFunc(e):
+            self.actionFunc(e)
+
+# =============================================================================================
+#  9. ĐIỀU PHỐI ĐĂNG KÝ (COORDINATOR)
+# =============================================================================================
+class DeviceMonitoringCoordinator:
+    def __init__(self, devices: List[TeachingDevice], notif: ConsoleNotificationService, logger: DeviceAuditLogger, maint: MaintenanceService):
+        self.devices = devices
+        self.notificationService = notif
+        self.auditLogger = logger
+        self.maintenanceService = maint
+        self._isSubscribed = False
+
+    def subscribe(self):
+        if self._isSubscribed: return
+        for dev in self.devices:
+            dev.statusChanged += self.auditLogger.handleStatusChanged
+            dev.alertRaised += self.notificationService.handleAlert
+            dev.alertRaised += self.maintenanceService.handleCriticalAlert
+        self._isSubscribed = True
+        print("[*] Coordinator: Đã Subscribe thành công.")
+
+    def unsubscribe(self):
+        if not self._isSubscribed: return
+        for dev in self.devices:
+            dev.statusChanged -= self.auditLogger.handleStatusChanged
+            dev.alertRaised -= self.notificationService.handleAlert
+            dev.alertRaised -= self.maintenanceService.handleCriticalAlert
+        self._isSubscribed = False
+        print("[*] Coordinator: Đã Unsubscribe thành công.")
+
+    def dispose(self):
+        self.unsubscribe()
