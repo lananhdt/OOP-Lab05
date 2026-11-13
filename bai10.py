@@ -65,3 +65,41 @@ class SmartDoor(IDevice, ILockable):
 
     def unlock(self):
         print(f"{self.name}: UNLOCKED")
+
+# ==========================================
+# DEVICE FACTORY
+# ==========================================
+
+class DeviceFactory:
+    """Tách việc tạo đối tượng cụ thể khỏi client."""
+    @staticmethod
+    def create(device_type: str, name: str) -> IDevice:
+        # Không phân biệt chữ hoa, chữ thường, loại bỏ khoảng trắng thừa
+        device_type = device_type.strip().lower()
+        
+        if device_type == "light":
+            return SmartLight(name)
+        elif device_type == "fan":
+            return SmartFan(name)
+        elif device_type == "door":
+            return SmartDoor(name)
+        else:
+            raise ValueError(f"Unsupported device type: {device_type}")
+
+# ==========================================
+# HOME CONFIGURATION
+# ==========================================
+
+class HomeConfiguration:
+    """Chia sẻ cấu hình ứng dụng một cách an toàn luồng (Thread-safe)."""
+    _instance = None
+    _lock = threading.Lock()
+
+    def __new__(cls):
+        with cls._lock:
+            if cls._instance is None:
+                cls._instance = super(HomeConfiguration, cls).__new__(cls)
+                # Khởi tạo giá trị mặc định
+                cls._instance.home_name = "My Home"
+                cls._instance.night_light_level = 30
+        return cls._instance
