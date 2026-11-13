@@ -103,3 +103,30 @@ class HomeConfiguration:
                 cls._instance.home_name = "My Home"
                 cls._instance.night_light_level = 30
         return cls._instance
+
+# ==========================================
+# SMART HOME FACADE
+# ==========================================
+
+class SmartHomeFacade:
+    """Cung cấp các thao tác mức cao (GoToWork, GoToSleep) cho nhiều thiết bị."""
+    def __init__(self, light: IDevice, fan: IDevice, door: ILockable):
+        self.light = light
+        self.fan = fan
+        self.door = door
+
+    def go_to_work(self):
+        print("\n--- Activating Go To Work Mode ---")
+        self.light.turn_off()
+        self.fan.turn_off()
+        self.door.lock()
+
+    def go_to_sleep(self):
+        print("\n--- Activating Go To Sleep Mode ---")
+        self.fan.turn_off()
+        self.door.lock()
+        self.light.turn_on()
+        
+        # Đọc cấu hình độ sáng từ Singleton
+        level = HomeConfiguration().night_light_level
+        print(f"Night light level: {level}%")
