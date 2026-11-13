@@ -29,3 +29,39 @@ class ILockable(ABC):
     @abstractmethod
     def unlock(self):
         pass
+
+class SmartLight(IDevice):
+    def __init__(self, name: str):
+        self.name = name
+
+    def turn_on(self):
+        print(f"{self.name}: ON")
+
+    def turn_off(self):
+        print(f"{self.name}: OFF")
+
+class SmartFan(IDevice):
+    def __init__(self, name: str):
+        self.name = name
+
+    def turn_on(self):
+        print(f"{self.name}: ON")
+
+    def turn_off(self):
+        print(f"{self.name}: OFF")
+
+class SmartDoor(IDevice, ILockable):
+    def __init__(self, name: str):
+        self.name = name
+
+    def turn_on(self):
+        print(f"{self.name}: OPEN")
+
+    def turn_off(self):
+        print(f"{self.name}: CLOSED")
+
+    def lock(self):
+        print(f"{self.name}: LOCKED")
+
+    def unlock(self):
+        print(f"{self.name}: UNLOCKED")
