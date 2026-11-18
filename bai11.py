@@ -150,3 +150,59 @@ class EmergencyMediator(IEmergencyMediator):
             self.alarm.deactivate()
             self.door.lock_doors()
             self.ventilation.start_ventilation()
+
+# ==========================================
+# OBSERVER PATTERN
+# ==========================================
+
+class IAlertObserver(ABC):
+    """Hợp đồng nhận cảnh báo cho các bên quan tâm."""
+    @abstractmethod
+    def update(self, alert_event: AlertEvent):
+        pass
+
+class SensorMonitor:
+    """Subject quản lý danh sách observer, đọc cảm biến, đánh giá ngưỡng và cảnh báo"""
+    def __init__(self):
+        self._observers: List[IAlertObserver] = []
+
+    def attach(self, observer: IAlertObserver):
+        if observer is None:
+            raise ValueError("Observer không được null.")
+        # Không cho phép cùng một observer đăng ký hai lần
+        if observer not in self._observers:
+            self._observers.append(observer)
+
+    def detach(self, observer: IAlertObserver):
+        if observer in self._observers:
+            self._observers.remove(observer)
+
+    def check_sensor(self, sensor_name: str, sensor: ISensor):
+        value = sensor.read_value()
+
+        # Phân loại mức độ cảnh báo theo ngưỡng quy ước
+        if value >= 70.0:
+            severity = "CRITICAL"
+        elif value >= 50.0:
+            severity = "WARNING"
+        else:
+            print(f"[MONITOR] {sensor_name}: {value:.1f}{sensor.get_unit()} -> Bình thường (Không phát cảnh báo).")
+            return
+
+        alert_event = AlertEvent(
+            sensor_name=sensor_name,
+            value=value,
+            unit=sensor.get_unit(),
+            severity=severity,
+            occurred_at=datetime.now()
+        )
+        self._notify(alert_event)
+
+    def _notify(self, alert_event: AlertEvent):
+        # Duyệt trên bản sao list() để tránh lỗi nếu một observer tự detach trong lúc đang thông báo
+        for observer in list(self._observers):
+            try:
+                observer.update(alert_event)
+            except Exception as ex:
+                # Cô lập lỗi: Một observer gặp sự cố không làm ảnh hưởng các observer khác
+                print(f"  [ERROR] Observer {observer.__class__.__name__} gặp lỗi khi xử lý: {ex}")
