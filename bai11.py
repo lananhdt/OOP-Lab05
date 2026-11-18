@@ -206,3 +206,35 @@ class SensorMonitor:
             except Exception as ex:
                 # Cô lập lỗi: Một observer gặp sự cố không làm ảnh hưởng các observer khác
                 print(f"  [ERROR] Observer {observer.__class__.__name__} gặp lỗi khi xử lý: {ex}")
+
+class DashboardObserver(IAlertObserver):
+    def update(self, alert_event: AlertEvent):
+        print(f"  [DASHBOARD] {alert_event.sensor_name}: {alert_event.value:.1f}{alert_event.unit} [{alert_event.severity}]")
+
+class EmailAlertObserver(IAlertObserver):
+    def __init__(self, recipient: str = "admin@campus.edu.vn"):
+        self.recipient = recipient
+
+    def update(self, alert_event: AlertEvent):
+        print(f"  [EMAIL -> {self.recipient}] Cảnh báo {alert_event.severity}: {alert_event.sensor_name} đạt {alert_event.value:.1f}{alert_event.unit}")
+
+class AuditLogObserver(IAlertObserver):
+    def __init__(self):
+        self.logs: List[str] = []
+
+    def update(self, alert_event: AlertEvent):
+        timestamp = alert_event.occurred_at.strftime("%Y-%m-%d %H:%M:%S")
+        entry = f"[{timestamp}] {alert_event.severity} | {alert_event.sensor_name} = {alert_event.value:.1f}{alert_event.unit}"
+        self.logs.append(entry)
+        print(f"  [AUDIT LOG] Đã ghi nhận: {entry}")
+
+class EmergencyBridgeObserver(IAlertObserver):
+    """Cầu nối chuyển cảnh báo mức CRITICAL thành sự kiện FIRE_DETECTED cho Mediator."""
+    def __init__(self, mediator: IEmergencyMediator):
+        if mediator is None:
+            raise ValueError("Mediator không được null.")
+        self._mediator = mediator
+
+    def update(self, alert_event: AlertEvent):
+        if alert_event.severity == "CRITICAL":
+            self._mediator.notify(self, "FIRE_DETECTED", alert_event)
