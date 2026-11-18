@@ -62,3 +62,51 @@ class SmokeSensorAdapter(ISensor):
 
     def get_unit(self) -> str:
         return "% smoke"
+
+# ==========================================
+# MEDIATOR PATTERN
+# ==========================================
+
+class IEmergencyMediator(ABC):
+    """Hợp đồng điều phối giữa các thiết bị ứng phó khẩn cấp"""
+    @abstractmethod
+    def notify(self, sender: object, event: str, data: Optional[AlertEvent] = None):
+        pass
+
+class EmergencyDevice(ABC):
+    """Lớp cơ sở cho các thiết bị chịu sự điều phối của Mediator"""
+    def __init__(self, mediator: Optional[IEmergencyMediator] = None):
+        self._mediator = mediator
+
+    def set_mediator(self, mediator: IEmergencyMediator):
+        self._mediator = mediator
+
+class Alarm(EmergencyDevice):
+    def __init__(self, mediator: Optional[IEmergencyMediator] = None):
+        super().__init__(mediator)
+        self.is_ringing = False
+
+    def activate(self):
+        if not self.is_ringing:
+            self.is_ringing = True
+            print("  [ALARM] Còi báo cháy hú vang toàn phòng máy!")
+
+    def deactivate(self):
+        if self.is_ringing:
+            self.is_ringing = False
+            print("  [ALARM] Đã tắt còi báo cháy.")
+
+class DoorController(EmergencyDevice):
+    def __init__(self, mediator: Optional[IEmergencyMediator] = None):
+        super().__init__(mediator)
+        self.is_locked = True
+
+    def unlock_emergency_doors(self):
+        if self.is_locked:
+            self.is_locked = False
+            print("  [DOOR] Đã mở khóa toàn bộ cửa thoát hiểm!")
+
+    def lock_doors(self):
+        if not self.is_locked:
+            self.is_locked = True
+            print("  [DOOR] Đã khóa lại cửa phòng máy.")
