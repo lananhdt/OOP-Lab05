@@ -238,3 +238,60 @@ class EmergencyBridgeObserver(IAlertObserver):
     def update(self, alert_event: AlertEvent):
         if alert_event.severity == "CRITICAL":
             self._mediator.notify(self, "FIRE_DETECTED", alert_event)
+
+# ==========================================
+# KIỂM THỬ
+# ==========================================
+
+def main():
+    print("============== KIỂM THỬ ==============")
+
+    # Kiểm thử Adapter với LegacySmokeDetector
+    print("\n[T1] Kiểm thử SmokeSensorAdapter:")
+    legacy_detector = LegacySmokeDetector(350)  # 35.0% (Bình thường)
+    smoke_sensor: ISensor = SmokeSensorAdapter(legacy_detector)
+    print(f"  Mô tả thiết bị gốc: {legacy_detector.get_description()}")
+    print(f"  Giá trị qua Adapter: {smoke_sensor.read_value()} {smoke_sensor.get_unit()}")
+
+    # Khởi tạo Mediator và các thiết bị ứng phó khẩn cấp
+    alarm = Alarm()
+    door_ctrl = DoorController()
+    vent_ctrl = VentilationController()
+    mediator = EmergencyMediator(alarm, door_ctrl, vent_ctrl)
+
+    # Khởi tạo SensorMonitor và đăng ký các Observers
+    monitor = SensorMonitor()
+    dashboard_obs = DashboardObserver()
+    email_obs = EmailAlertObserver("it-safety@hust.edu.vn")
+    audit_obs = AuditLogObserver()
+    bridge_obs = EmergencyBridgeObserver(mediator)
+
+    monitor.attach(dashboard_obs)
+    monitor.attach(dashboard_obs) 
+    monitor.attach(email_obs)
+    monitor.attach(audit_obs)
+    monitor.attach(bridge_obs)
+
+    # Kiểm thử các ngưỡng cảnh báo
+    print("\n[T2] Kiểm tra ngưỡng BÌNH THƯỜNG (< 50%):")
+    monitor.check_sensor("ServerRoom-Smoke-01", smoke_sensor)
+
+    print("\n[T3] Kiểm tra ngưỡng WARNING (50% <= value < 70%):")
+    legacy_detector.set_smoke_level(620)  # 62.0% -> WARNING (Không kích hoạt Mediator)
+    monitor.check_sensor("ServerRoom-Smoke-01", smoke_sensor)
+
+    print("\n[T4] Kiểm tra ngưỡng CRITICAL (>= 70%) -> Kích hoạt Mediator:")
+    legacy_detector.set_smoke_level(735)  # 73.5% -> CRITICAL (Kích hoạt Bridge -> Mediator)
+    monitor.check_sensor("ServerRoom-Smoke-01", smoke_sensor)
+
+    # Kiểm thử hủy đăng ký (Detach) và khôi phục trạng thái
+    print("\n[T5] Hủy EmailAlertObserver và kiểm tra lại với mức khói 80%:")
+    monitor.detach(email_obs)
+    legacy_detector.set_smoke_level(800)  # 80.0% -> EmailAlertObserver không còn nhận tin
+    monitor.check_sensor("ServerRoom-Smoke-01", smoke_sensor)
+
+    # Khôi phục trạng thái an toàn qua Mediator
+    mediator.notify(None, "ALL_CLEAR")
+
+if __name__ == "__main__":
+    main()
