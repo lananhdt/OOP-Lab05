@@ -110,3 +110,43 @@ class DoorController(EmergencyDevice):
         if not self.is_locked:
             self.is_locked = True
             print("  [DOOR] Đã khóa lại cửa phòng máy.")
+
+class VentilationController(EmergencyDevice):
+    def __init__(self, mediator: Optional[IEmergencyMediator] = None):
+        super().__init__(mediator)
+        self.is_running = True
+
+    def shutdown_ventilation(self):
+        if self.is_running:
+            self.is_running = False
+            print("  [VENTILATION] Đã ngắt hệ thống điều hòa/thông gió để ngăn khói lan rộng!")
+
+    def start_ventilation(self):
+        if not self.is_running:
+            self.is_running = True
+            print("  [VENTILATION] Đã khởi động lại hệ thống thông gió.")
+
+class EmergencyMediator(IEmergencyMediator):
+    """Trung tâm điều phối Alarm, DoorController và VentilationController"""
+    def __init__(self, alarm: Alarm, door: DoorController, ventilation: VentilationController):
+        self.alarm = alarm
+        self.door = door
+        self.ventilation = ventilation
+
+        # Gán mediator cho từng thiết bị thành phần
+        self.alarm.set_mediator(self)
+        self.door.set_mediator(self)
+        self.ventilation.set_mediator(self)
+
+    def notify(self, sender: object, event: str, data: Optional[AlertEvent] = None):
+        if event == "FIRE_DETECTED":
+            sensor_info = f" từ {data.sensor_name} ({data.value:.1f}{data.unit})" if data else ""
+            print(f"\n>>> [MEDIATOR] Kích hoạt kịch bản KHẨN CẤP (FIRE_DETECTED){sensor_info}:")
+            self.alarm.activate()
+            self.door.unlock_emergency_doors()
+            self.ventilation.shutdown_ventilation()
+        elif event == "ALL_CLEAR":
+            print("\n>>> [MEDIATOR] Khôi phục trạng thái an toàn (ALL_CLEAR):")
+            self.alarm.deactivate()
+            self.door.lock_doors()
+            self.ventilation.start_ventilation()
