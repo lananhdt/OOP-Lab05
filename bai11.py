@@ -48,3 +48,17 @@ class LegacySmokeDetector:
 
     def set_smoke_level(self, value: int):
         self._smoke_level = max(0, min(1000, value))
+
+class SmokeSensorAdapter(ISensor):
+    """Adapter chuyển đổi giao diện và thang đo từ cảm biến cũ"""
+    def __init__(self, legacy: LegacySmokeDetector):
+        if legacy is None:
+            raise ValueError("LegacySmokeDetector không được null.")
+        # Giữ tham chiếu trực tiếp tới đối tượng cũ, không sao chép trạng thái
+        self._legacy = legacy
+
+    def read_value(self) -> float:
+        return self._legacy.get_smoke_level() / 10.0
+
+    def get_unit(self) -> str:
+        return "% smoke"
